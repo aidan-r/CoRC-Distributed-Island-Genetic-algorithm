@@ -121,7 +121,7 @@ set_nth_individual <- function(method, index, ind)
 }
 
 library(CoRC)
-loadModel("C:/Users/aidan/Desktop/HRP/corc_test/himmelblau.cps")
+loadModel("C:/Users/aidan/Desktop/HRP/models/KinMMFit.cps")
 c_datamodel <- getCurrentModel()
 
 task <- as(c_datamodel$getTask("Parameter Estimation"), "_p_CFitTask")
