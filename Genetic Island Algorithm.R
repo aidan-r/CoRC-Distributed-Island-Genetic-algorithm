@@ -123,76 +123,118 @@ set_nth_individual <- function(method, index, ind)
 
 library(CoRC)
 loadModel("C:/Users/aidan/Desktop/HRP/models/KinMMFit.cps")
-c_datamodel <- getCurrentModel()
+c_datamodel_one <- getCurrentModel()
+c_datamodel_two <- getCurrentModel()
 
-task <- as(c_datamodel$getTask("Parameter Estimation"), "_p_CFitTask")
-problem <- as(task$getProblem(), "_p_CFitProblem")
+task_one <- as(c_datamodel_one$getTask("Parameter Estimation"), "_p_CFitTask")
+task_two <- as(c_datamodel_two$getTask("Parameter Estimation"), "_p_CFitTask")
 
-task$initialize(TRUE)
+problem_one <- as(task_one$getProblem(), "_p_CFitProblem")
+problem_two <- as(task_two$getProblem(), "_p_CFitProblem")
+
+task_one$initialize(TRUE)
+task_two$initialize(TRUE)
 
 
-method <- as(task$getMethod(), "_p_COptMethodGA")
-print(paste("uses method ", method$getObjectName()))
+method_one <- as(task_one$getMethod(), "_p_COptMethodGA")
+print(paste("instance on uses method ", method_one$getObjectName()))
+
+method_two <- as(task_two$getMethod(), "_p_COptMethodGA")
+print(paste("instance two uses method ", method_two$getObjectName()))
 
 
 # need to manually do some steps that would have been done by Task::process
-problem$randomizeStartValues() # this will only randomize start values if the flag is checked in the model
-problem$rememberStartValues()  # this stores the start values, so they can be reset later
-problem$resetEvaluations()     # resets the counter of function evaluations
-task$output('BEFORE') # this will cause the report settings in header to be 
+problem_one$randomizeStartValues() # this will only randomize start values if the flag is checked in the model
+problem_one$rememberStartValues()  # this stores the start values, so they can be reset later
+problem_one$resetEvaluations()     # resets the counter of function evaluations
+task_one$output('BEFORE') # this will cause the report settings in header to be 
 
-method$optimise_start() # initialize populations
+problem_two$randomizeStartValues() # this will only randomize start values if the flag is checked in the model
+problem_two$rememberStartValues()  # this stores the start values, so they can be reset later
+problem_two$resetEvaluations()     # resets the counter of function evaluations
+task_two$output('BEFORE') # this will cause the report settings in header to be 
 
-print(paste("population size ", method$getPopulationSize()))
-print(paste("generation number", method$getNumGenerations()))
+method_one$optimise_start() # initialize populations
+method_two$optimise_Start()
 
-gens <- method$getNumGenerations()
+print(paste("population size of instance one ", method_one$getPopulationSize()))
+print(paste("generation number of instance one", method_one$getNumGenerations()))
+
+print(paste("population size of instance two ", method_two$getPopulationSize()))
+print(paste("generation number of instance two", method_two$getNumGenerations()))
+
+gens_one <- method_one$getNumGenerations()
+gens_two <- method_two$getNumGenerations()
+
 inc <- 10
-print("Initial population")
-initial_pop <- get_population(method)
-print (initial_pop)
+print("Initial population One")
+initial_pop_one <- get_population(method_one)
+print (initial_pop_one)
 print("with objective values")
-print(get_objective_values(method))
+print(get_objective_values(method_one))
+
+print("Initial population Two")
+initial_pop_two <- get_population(method_two)
+print (initial_pop_two)
+print("with objective values")
+print(get_objective_values(method_two))
 
 
 #this is the new function that should manage the step number
-step_loop <- function(gens,inc){
-  rem = gens %% inc #find the remainder when dividing the total generations by the increment
-  first = gens - rem #find the total number of times the generation can be repeated by the first loop evenly
-  counter = 0 #track what generation we are at
-  while(counter < first){
-    for(i in 1:inc){ #repeat an arbitrary process at the increment chosen
-      method$optimise_step()
-      counter = counter+1 #increase the total number of generations seen
-      }
-  }
-  if(!(rem == 0)){ #if the total generations is not evenly divide, increment through the remainder
-    for(i in 1:rem){
-      method$optimise_step()
-      counter = counter + 1
-      
-    }
-    
-  }
-}
+# step_loop <- function(generations,inc,met){
+#   rem = generations %% inc #find the remainder when dividing the total generations by the increment
+#   first = generations - rem #find the total number of times the generation can be repeated by the first loop evenly
+#   counter = 0 #track what generation we are at
+#   while(counter < first){
+#     for(i in 1:inc){ #repeat an arbitrary process at the increment chosen
+#       method$optimise_step()
+#       counter = counter+1 #increase the total number of generations seen
+#     }
+#   }
+#   if(!(rem == 0)){ #if the total generations is not evenly divide, increment through the remainder
+#     for(i in 1:rem){
+#       method$optimise_step()
+#       counter = counter + 1
+#       
+#     }
+#     
+#   }
+# }
 
-step_loop(200,10) #call the optimization with the new function
+new_loop <- function(inc, met) {
+  for(i in 1:inc){ #repeat an arbitrary process at the increment chosen
+    met$optimise_step()
+  }}
+
+
+new_loop(10,method_one)
+new_loop(10,method_two) #call the optimization with the new function
 
 
 
 # result: 
-population <- get_population(method)
-print("obj values")
-obj_values <- get_objective_values(method)
-print(obj_values)
-best_index = method$getBestIndex()
-print (paste("best one: ", best_index, 
-             " with value ", obj_values[best_index+1], " was: "))
-print(population[best_index+1,])
+population_one <- get_population(method_one)
+print("obj values of population one")
+obj_values_one <- get_objective_values(method_one)
+print(obj_values_one)
+best_index_one = method_one$getBestIndex()
 
+print (paste("best from population one was: ", best_index_one, 
+             " with value ", obj_values_one[best_index_one+1], " was: "))
+print(population_one[best_index_one+1,])
 
+population_two <- get_population(method_two)
+print("obj values of population one")
+obj_values_two <- get_objective_values(method_two)
+print(obj_values_one)
+best_index_two = method_two$getBestIndex()
+
+print (paste("best from population two was: ", best_index_two, 
+             " with value ", obj_values_two[best_index_two+1], " was: "))
+print(population_two[best_index_two+1,])
 # population is no longer available after calling finish
-method$optimise_finish();
+method_one$optimise_finish();
+method_two$optimise_finish()
 
 # once done we might need some extra steps
 problem$calculateStatistics() # calculate solution statistic (if option is checked)
