@@ -1,4 +1,3 @@
-
 ### Defining all functions we are going to use 
 ##mGenerations
 
@@ -123,10 +122,12 @@ set_nth_individual <- function(method, index, ind)
 
 library(CoRC)
 
-c_datamodel_one <- loadModel("C:/Users/aidan/Desktop/HRP/models/KinMMFit.cps")
-c_datamodel_two <- loadModel("C:/Users/aidan/Desktop/HRP/models/KinMMFit.cps")
+c_datamodel_one <- loadModel("C:/Users/aidan/Desktop/HRP/CoRC-Distributed-Island-Genetic-Algorithm/KinMMFit.cps")
+c_datamodel_two <- loadModel("C:/Users/aidan/Desktop/HRP/CoRC-Distributed-Island-Genetic-Algorithm/KinMMFit.cps")
 
 task_one <- as(c_datamodel_one$getTask("Parameter Estimation"), "_p_CFitTask")
+
+
 task_two <- as(c_datamodel_two$getTask("Parameter Estimation"), "_p_CFitTask")
 
 problem_one <- as(task_one$getProblem(), "_p_CFitProblem")
@@ -154,8 +155,18 @@ problem_two$rememberStartValues()  # this stores the start values, so they can b
 problem_two$resetEvaluations()     # resets the counter of function evaluations
 task_two$output('BEFORE') # this will cause the report settings in header to be 
 
+if (method_one$getObjectName() != "Genetic Algorithm")
+{
+  stop("This code only works with Genetic Algorithm")
+}
+
+if (method_two$getObjectName() != "Genetic Algorithm")
+{
+  stop("This code only works with Genetic Algorithm")
+}
+
 method_one$optimise_start() # initialize populations
-method_two$optimise_Start()
+method_two$optimise_start()
 
 print(paste("population size of instance one ", method_one$getPopulationSize()))
 print(paste("generation number of instance one", method_one$getNumGenerations()))
@@ -170,14 +181,12 @@ inc <- 10
 print("Initial population One")
 initial_pop_one <- get_population(method_one)
 print (initial_pop_one)
-print("with objective values")
-print(get_objective_values(method_one))
+
 
 print("Initial population Two")
 initial_pop_two <- get_population(method_two)
 print (initial_pop_two)
-print("with objective values")
-print(get_objective_values(method_two))
+
 
 
 #this is the new function that should manage the step number
@@ -214,28 +223,31 @@ new_loop(10,method_two) #call the optimization with the new function
 
 # result: 
 population_one <- get_population(method_one)
-print("obj values of population one")
-obj_values_one <- get_objective_values(method_one)
-print(obj_values_one)
-best_index_one = method_one$getBestIndex()
 
-print (paste("best from population one was: ", best_index_one, 
-             " with value ", obj_values_one[best_index_one+1], " was: "))
-print(population_one[best_index_one+1,])
+
 
 population_two <- get_population(method_two)
-print("obj values of population one")
-obj_values_two <- get_objective_values(method_two)
-print(obj_values_one)
-best_index_two = method_two$getBestIndex()
 
-print (paste("best from population two was: ", best_index_two, 
-             " with value ", obj_values_two[best_index_two+1], " was: "))
-print(population_two[best_index_two+1,])
+
+idx_retrieve <- sample(1:(dim(population_two)[1] - 1),1,replace = TRUE) #need to know if the "-1" is correct
+
+random_indiv_two <- population_two[idx_retrieve,]
+
+idx_insert <- sample(1:(dim(population_one)[1] - 1),1,replace = TRUE) #generate a random index to within the size of the population, need reminder why population dimension is twice the lenght of the population parameter
+
+set_nth_individual(method_one,idx_insert,random_indiv_two)#replacing a random individual in population one with the best from population 
+print("random selection is:")
+print(random_indiv_two)
+print(paste("inserted at position",idx_insert+1))
+
+population_one <- get_population(method_one) #this is where I am encountering an issue as I am not seeing the set nth individual function properly
+
+print(population_one)
+
+new_loop(10,method_one)
+new_loop(10,method_two)
+
+
 # population is no longer available after calling finish
 method_one$optimise_finish();
 method_two$optimise_finish()
-
-# once done we might need some extra steps
-problem$calculateStatistics() # calculate solution statistic (if option is checked)
-task$output("AFTER") # output footer information
