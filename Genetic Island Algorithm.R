@@ -174,10 +174,10 @@ print(paste("generation number of instance one", method_one$getNumGenerations())
 print(paste("population size of instance two ", method_two$getPopulationSize()))
 print(paste("generation number of instance two", method_two$getNumGenerations()))
 
-gens_one <- method_one$getNumGenerations()
-gens_two <- method_two$getNumGenerations()
+gens <- method_one$getNumGenerations()
+steps <- 10
 
-inc <- 10
+
 print("Initial population One")
 initial_pop_one <- get_population(method_one)
 print (initial_pop_one)
@@ -189,63 +189,43 @@ print (initial_pop_two)
 
 
 
-#this is the new function that should manage the step number
-# step_loop <- function(generations,inc,met){
-#   rem = generations %% inc #find the remainder when dividing the total generations by the increment
-#   first = generations - rem #find the total number of times the generation can be repeated by the first loop evenly
-#   counter = 0 #track what generation we are at
-#   while(counter < first){
-#     for(i in 1:inc){ #repeat an arbitrary process at the increment chosen
-#       method$optimise_step()
-#       counter = counter+1 #increase the total number of generations seen
-#     }
-#   }
-#   if(!(rem == 0)){ #if the total generations is not evenly divide, increment through the remainder
-#     for(i in 1:rem){
-#       method$optimise_step()
-#       counter = counter + 1
-#       
-#     }
-#     
-#   }
-# }
 
-new_loop <- function(inc, met) {
-  for(i in 1:inc){ #repeat an arbitrary process at the increment chosen
-    met$optimise_step()
-  }}
+exchange <- function(met_a,met_b){
+  #initializing populations from method object
+  pop_a <- get_population(met_a) 
+  pop_b <- get_population(met_b)
+  
+  #generating the random index
+  idx <- sample(1:(dim(pop_a)[1]),1,replace = TRUE) 
+  print(idx)
+  #retrieving the randomly selected individuals
+  random_indiv_b <- pop_b[idx,]
+  random_indiv_a <- pop_a[idx,]
+  
+  #actually completing the exchange
+  set_nth_individual(met_a,idx-1,random_indiv_b)#replacing a random individual in population one with the best from population 
+  #I am pretty sure this is where the "-1" needs to be placed to function correctly
+  set_nth_individual(met_b,idx-1,random_indiv_a)#replacing a random individual in population one with the best from population 
+  
+  
+}
 
+main_loop <- function(generations,step_size,met_a,met_b){
+  for(i in 1:generations){
+    if(i %% step_size == 0){
+      exchange(met_a,met_b)
+      met_a$optimise_step()
+      met_b$optimise_step()}
+      else{
+        met_a$optimise_step()
+        met_b$optimise_step()
+      
+    }
+  }
+}
 
-new_loop(10,method_one)
-new_loop(10,method_two) #call the optimization with the new function
+main_loop(gens,steps,met_a,met_b)
 
-
-
-# result: 
-population_one <- get_population(method_one)
-
-
-
-population_two <- get_population(method_two)
-
-
-idx_retrieve <- sample(1:(dim(population_two)[1] - 1),1,replace = TRUE) #need to know if the "-1" is correct
-
-random_indiv_two <- population_two[idx_retrieve,]
-
-idx_insert <- sample(1:(dim(population_one)[1] - 1),1,replace = TRUE) #generate a random index to within the size of the population, need reminder why population dimension is twice the lenght of the population parameter
-
-set_nth_individual(method_one,idx_insert,random_indiv_two)#replacing a random individual in population one with the best from population 
-print("random selection is:")
-print(random_indiv_two)
-print(paste("inserted at position",idx_insert+1))
-
-population_one <- get_population(method_one) #this is where I am encountering an issue as I am not seeing the set nth individual function properly
-
-print(population_one)
-
-new_loop(10,method_one)
-new_loop(10,method_two)
 
 
 # population is no longer available after calling finish
