@@ -175,7 +175,7 @@ print(paste("generation number of instance one", method_one$getNumGenerations())
 print(paste("population size of instance two ", method_two$getPopulationSize()))
 print(paste("generation number of instance two", method_two$getNumGenerations()))
 
-gens <- method_one$getNumGenerations()
+generations <- method_one$getNumGenerations()
 steps <- 10
 
 
@@ -212,61 +212,59 @@ exchange <- function(met_a,met_b){
 
 #need a column for the gen number, the objective value, and each parameter that was estimated
 #start off with 0 rows and successively add at each step
-rows <- 0
+
 col <- 2 + dim(initial_pop_one)[2]
 
-output_one <- data.frame(matrix(ncol = col,nrow = rows)) #dataframe for the first pop
-output_two <- data.frame(matrix(ncol = col,nrow = rows)) #dataframe for the second pop
+output_one <- data.frame(matrix(ncol = col,nrow = generations)) #dataframe for the first pop
+output_two <- data.frame(matrix(ncol = col,nrow = generations)) #dataframe for the second pop
 
 #encountering some type of error with the function correctly appending to the dataframe
 
 
-main_loop <- function(generations,step_size,met_a,met_b,output_a,output_b){
-  for(i in 1:generations){
-    if(i %% step_size == 0){
-      #exchange the values between the two populations
-      exchange(met_a,met_b)
+#main loop that will run both populations through the ga while exchanging random values
+for(i in 1:generations){
+  if(i %% steps == 0){
+    #exchange the values between the two populations
+    exchange(method_one,method_two)
       
-      #step population 1 and save the data
-      met_a$optimise_step()
-      obj_values_one <- get_objective_values(met_a)
-      population_one <- get_population(met_a)
-      best_index_one = met_a$getBestIndex()
+    #step population 1 and save the data
+    method_one$optimise_step()
+    obj_values_one <- get_objective_values(method_one) #retrieve the objective values
+    population_one <- get_population(method_one) #retrieve the current population
+    best_index_one <- method_one$getBestIndex() #retrieve the index of the best member of the population
+    obj_values_one[best_index_one+1]
+    population_one[best_index_one+1,]
+    output_one[i,] <- c(best_index_one+1,obj_values_one[best_index_one+1],population_one[best_index_one+1,]) #assign the current row of the data frame to the best value
+      
+    #step population 2 and save the data
+    method_two$optimise_step()
+    obj_values_two <- get_objective_values(method_two)
+    population_two <- get_population(method_two)
+    best_index_two = method_two$getBestIndex()
+    obj_values_two[best_index_two+1]
+    population_two[best_index_two+1,]
+    output_two[i,] <- c(best_index_two+1,obj_values_two[best_index_two+1],population_two[best_index_two+1,])
+    }
+    else{
+      method_one$optimise_step()
+      obj_values_one <- get_objective_values(method_one)
+      population_one <- get_population(method_one)
+      best_index_one = method_one$getBestIndex()
       obj_values_one[best_index_one+1]
       population_one[best_index_one+1,]
-      output_a <- rbind(output_a,c(best_index_one+1,obj_values_one[best_index_one+1],population_one[best_index_one+1,]))
-      
-      #step population 2 and save the data
-      met_b$optimise_step()
-      obj_values_two <- get_objective_values(met_b)
-      population_two <- get_population(met_b)
-      best_index_two = met_b$getBestIndex()
+      output_one[i,] <- c(best_index_one+1,obj_values_one[best_index_one+1],population_one[best_index_one+1,])
+        
+      method_two$optimise_step()
+      obj_values_two <- get_objective_values(method_two)
+      population_two <- get_population(method_two)
+      best_index_two = method_two$getBestIndex()
       obj_values_two[best_index_two+1]
       population_two[best_index_two+1,]
-      output_b <- rbind(output_b,c(best_index_two+1,obj_values_two[best_index_two+1],population_two[best_index_two+1,]))
-      }
-      else{
-        met_a$optimise_step()
-        obj_values_one <- get_objective_values(met_a)
-        population_one <- get_population(met_a)
-        best_index_one = met_a$getBestIndex()
-        obj_values_one[best_index_one+1]
-        population_one[best_index_one+1,]
-        output_a <- rbind(output_a,c(best_index_one+1,obj_values_one[best_index_one+1],population_one[best_index_one+1,]))
-        
-        met_b$optimise_step()
-        obj_values_two <- get_objective_values(met_b)
-        population_two <- get_population(met_b)
-        best_index_two = met_b$getBestIndex()
-        obj_values_two[best_index_two+1]
-        population_two[best_index_two+1,]
-        output_b <- rbind(output_b,c(best_index_two+1,obj_values_two[best_index_two+1],population_two[best_index_two+1,]))
+      output_two[i,] <- c(best_index_two+1,obj_values_two[best_index_two+1],population_two[best_index_two+1,])
         
     }
   }
-}
 
-main_loop(gens,steps,method_one,method_two,output_one,output_two)
 
 
 
