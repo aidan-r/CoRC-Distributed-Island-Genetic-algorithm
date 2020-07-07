@@ -1,3 +1,4 @@
+library(tidyverse)
 ### Defining all functions we are going to use 
 ##mGenerations
 
@@ -197,7 +198,6 @@ exchange <- function(met_a,met_b){
   
   #generating the random index
   idx <- sample(1:(dim(pop_a)[1]),1,replace = TRUE) 
-  print(idx)
   #retrieving the randomly selected individuals
   random_indiv_b <- pop_b[idx,]
   random_indiv_a <- pop_a[idx,]
@@ -210,24 +210,70 @@ exchange <- function(met_a,met_b){
   
 }
 
-main_loop <- function(generations,step_size,met_a,met_b){
+#need a column for the gen number, the objective value, and each parameter that was estimated
+#start off with 0 rows and successively add at each step
+rows <- 0
+col <- 2 + dim(initial_pop_one)[2]
+
+output_one <- data.frame(matrix(ncol = col,nrow = rows)) #dataframe for the first pop
+output_two <- data.frame(matrix(ncol = col,nrow = rows)) #dataframe for the second pop
+
+#encountering some type of error with the function correctly appending to the dataframe
+
+
+main_loop <- function(generations,step_size,met_a,met_b,output_a,output_b){
   for(i in 1:generations){
     if(i %% step_size == 0){
+      #exchange the values between the two populations
       exchange(met_a,met_b)
+      
+      #step population 1 and save the data
       met_a$optimise_step()
-      met_b$optimise_step()}
+      obj_values_one <- get_objective_values(met_a)
+      population_one <- get_population(met_a)
+      best_index_one = met_a$getBestIndex()
+      obj_values_one[best_index_one+1]
+      population_one[best_index_one+1,]
+      output_a <- rbind(output_a,c(best_index_one+1,obj_values_one[best_index_one+1],population_one[best_index_one+1,]))
+      
+      #step population 2 and save the data
+      met_b$optimise_step()
+      obj_values_two <- get_objective_values(met_b)
+      population_two <- get_population(met_b)
+      best_index_two = met_b$getBestIndex()
+      obj_values_two[best_index_two+1]
+      population_two[best_index_two+1,]
+      output_b <- rbind(output_b,c(best_index_two+1,obj_values_two[best_index_two+1],population_two[best_index_two+1,]))
+      }
       else{
         met_a$optimise_step()
+        obj_values_one <- get_objective_values(met_a)
+        population_one <- get_population(met_a)
+        best_index_one = met_a$getBestIndex()
+        obj_values_one[best_index_one+1]
+        population_one[best_index_one+1,]
+        output_a <- rbind(output_a,c(best_index_one+1,obj_values_one[best_index_one+1],population_one[best_index_one+1,]))
+        
         met_b$optimise_step()
-      
+        obj_values_two <- get_objective_values(met_b)
+        population_two <- get_population(met_b)
+        best_index_two = met_b$getBestIndex()
+        obj_values_two[best_index_two+1]
+        population_two[best_index_two+1,]
+        output_b <- rbind(output_b,c(best_index_two+1,obj_values_two[best_index_two+1],population_two[best_index_two+1,]))
+        
     }
   }
 }
 
-main_loop(gens,steps,met_a,met_b)
+main_loop(gens,steps,method_one,method_two,output_one,output_two)
 
 
 
 # population is no longer available after calling finish
 method_one$optimise_finish();
 method_two$optimise_finish()
+print("output one is")
+view(output_one)
+print("output two is")
+view(output_two)
