@@ -123,8 +123,14 @@ set_nth_individual <- function(method, index, ind)
 
 library(CoRC)
 
-c_datamodel_one <- loadModel("C:/Users/aidan/Desktop/HRP/CoRC-Distributed-Island-Genetic-Algorithm/KinMMFit.cps")
-c_datamodel_two <- loadModel("C:/Users/aidan/Desktop/HRP/CoRC-Distributed-Island-Genetic-Algorithm/KinMMFit.cps")
+# we create a base name, so that all filenames can be derived from it
+basename <- "C:/Users/aidan/Desktop/HRP/CoRC-Distributed-Island-Genetic-Algorithm/KinMMFit"
+
+# filename of model file to load; this just appends ".cps" to the basename
+modelfile <- sprintf("%s.cps",basename)
+
+c_datamodel_one <- loadModel(modelfile)
+c_datamodel_two <- loadModel(modelfile)
 
 task_one <- as(c_datamodel_one$getTask("Parameter Estimation"), "_p_CFitTask")
 
@@ -274,3 +280,6 @@ for(r in 1:repeats){
 } # end of the outer loop
 
 # now we need to save the entire data frame!
+outfilename <- sprintf("%s-%d.tsv",basename,repeats)
+write_tsv(x = output, path = outfilename, col_names = TRUE)
+
