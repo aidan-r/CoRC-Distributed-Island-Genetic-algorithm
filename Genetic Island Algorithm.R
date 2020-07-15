@@ -195,7 +195,7 @@ if (method_two$getObjectName() != "Genetic Algorithm")
 method_one$optimise_start() 
 generations <- method_one$getNumGenerations()
 initial_pop_one <- get_population(method_one)
-col <- 4 + dim(initial_pop_one)[2]
+col <- 5 + dim(initial_pop_one)[2]
 method_one$optimise_finish();
 # repeats is the number of times we want to repeat the whole process
 # later, this could be read from the command line instead of being hard-coded
@@ -248,7 +248,8 @@ for(r in 1:repeats){
      best_index_one <- method_one$getBestIndex() #retrieve the index of the best member of the population
      obj_values_one[best_index_one+1]
      population_one[best_index_one+1,]
-     output[row_n-1,] <- c(r,1,best_index_one+1,obj_values_one[best_index_one+1],population_one[best_index_one+1,]) #assign the current row of the data frame to the best value
+     fun_calls_1 <- problem_one$getFunctionEvaluations()
+     output[row_n-1,] <- c(r,1,i,fun_calls_1,obj_values_one[best_index_one+1],population_one[best_index_one+1,]) #assign the current row of the data frame to the best value
       
      #step population 2 and save the data
      method_two$optimise_step()
@@ -257,7 +258,8 @@ for(r in 1:repeats){
      best_index_two = method_two$getBestIndex()
      obj_values_two[best_index_two+1]
      population_two[best_index_two+1,]
-     output[row_n,] <- c(r,2,best_index_two+1,obj_values_two[best_index_two+1],population_two[best_index_two+1,])
+     fun_calls_2 <- problem_two$getFunctionEvaluations()
+     output[row_n,] <- c(r,2,i,fun_calls_2,obj_values_two[best_index_two+1],population_two[best_index_two+1,])
      }
      else{
        method_one$optimise_step()
@@ -266,7 +268,8 @@ for(r in 1:repeats){
        best_index_one = method_one$getBestIndex()
        obj_values_one[best_index_one+1]
        population_one[best_index_one+1,]
-       output[row_n-1,] <- c(r,1,best_index_one+1,obj_values_one[best_index_one+1],population_one[best_index_one+1,])
+       fun_calls_1 <- problem_one$getFunctionEvaluations()
+       output[row_n-1,] <- c(r,1,i,fun_calls_1,obj_values_one[best_index_one+1],population_one[best_index_one+1,])
          
        method_two$optimise_step()
        obj_values_two <- get_objective_values(method_two)
@@ -274,16 +277,15 @@ for(r in 1:repeats){
        best_index_two = method_two$getBestIndex()
        obj_values_two[best_index_two+1]
        population_two[best_index_two+1,]
-       output[row_n,] <- c(r,2,best_index_two+1,obj_values_two[best_index_two+1],population_two[best_index_two+1,])
+       fun_calls_2 <- problem_two$getFunctionEvaluations()
+       output[row_n,] <- c(r,2,i,fun_calls_2,obj_values_two[best_index_two+1],population_two[best_index_two+1,])
      }
    }
   
  # population is no longer available after calling finish
  method_one$optimise_finish();
  method_two$optimise_finish()
- print("output one is")
- view(output[r,1])
- print("output two is")
+ colnames(output) <- c("iteration","island","generation","evals","fitness","param 1","param 2","param 3","param 4","param 5","param 6","param 7")
  view(output)
 } # end of the outer loop
 
