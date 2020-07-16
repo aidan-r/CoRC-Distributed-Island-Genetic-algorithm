@@ -1,7 +1,7 @@
 library(tidyverse)
 
 #cannot import with fewer column names
-Standard_ga <- read.tsv("C:/Users/aidan/Desktop/HRP/CoRC-Distributed-Island-Genetic-algorithm/GA Performance Data/Standard_GA_300_20.txt")
+Standard_ga <- read_tsv("C:/Users/aidan/Desktop/HRP/CoRC-Distributed-Island-Genetic-algorithm/GA Performance Data/Standard_GA_10_gens.txt")
 
 #have to import data manually
 #wondering how to set when the value gets recorded in COPASI
@@ -16,6 +16,10 @@ ggplot(data = Standard_GA_300_20,mapping = aes(x = Standard_GA_300_20[,1],y = St
 #retrieving the data from the island script
 df_1 <- read_tsv("C:/Users/aidan/Desktop/HRP/CoRC-Distributed-Island-Genetic-algorithm/KinMMFit-10.tsv")
 
+iter <- df_1%>%
+  select(iteration)%>%
+  summarise(max = max(iteration))
+iter <- as.double(iter)
 
 #separating the objective values of the two islands across ten trials to recreate the COPASI plot
 #need to be able to plot which currently cannot
@@ -35,6 +39,16 @@ df_1 %>%
   summarise(avg = mean(X4))
 
 #creates a new df where the columns represent the fitness values of a specific iteration, calculates the mean for plotting
+
+#This is not functioning as intended
+test <- df_1 %>%
+filter(island == 1)%>%
+select(evals,fitness)
+for(i in 1:iter){
+  test<-mutate(paste("iteration_",i)=df%>%filter(island == 1,iteration == i)%>%select(fitness))}
+  
+
+
 island_1_avg <- df_1 %>% 
   filter(island ==1,iteration == 1)%>%
   select(evals,fitness)%>%
