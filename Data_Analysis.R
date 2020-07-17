@@ -1,10 +1,20 @@
 library(tidyverse)
+library(matrixStats)
 
 #cannot import with fewer column names
 Standard_ga <- read_tsv("C:/Users/aidan/Desktop/HRP/CoRC-Distributed-Island-Genetic-algorithm/GA Performance Data/Standard_GA_10_gens.txt",col_names = FALSE)
 
+#retrieving the island data
+df_1 <- read_tsv("C:/Users/aidan/Desktop/HRP/CoRC-Distributed-Island-Genetic-algorithm/KinMMFit-10.tsv")
 
-#remove the bracket columns from the df
+#Variable for the number of iterations
+iter <- df_1%>%
+  select(iteration)%>%
+  summarise(max = max(iteration))
+iter <- as.double(iter)
+
+
+#remove the bracket columns from the Standard GA df
 for(j in 1:dim(Standard_ga)[2]){
   if(j > dim(Standard_ga)[2]){
     break}
@@ -32,16 +42,32 @@ for(i in 1:dim(Standard_ga)[1]){
   }
 }
 
+#Select the iteration and fitness
+fitness_standard <- Standard_ga%>%
+  select(iteration,X2)
+#initialize the usable dataframe
+Standard_Avg <- data.frame(matrix(ncol = iter,nrow = 0))
+row_count = 1
+
+#Convert the data into a usable data frame for row-wise statistics
+for(i in 1:dim(fitness_standard)[1]){
+  col <- as.double(fitness_standard[i,1])
+  if(i == 1){
+    Standard_Avg[row_count,col] <- fitness_standard[row_count,2]
+    row_count<- row_count + 1
+  }
+  else if (fitness_standard[i,2] < fitness_standard[i-1,2]){
+    row_count <- row_count + 1
+    Standard_Avg[row_count,col] <- fitness_standard[i,2]
+  }
+  else if (fitness_standard[i,2] > fitness_standard[i-1,2]){
+    row_count <- 1
+    Standard_Avg[row_count,col] <- fitness_standard[i,2]
+  }
+}
 
 
 
-#retrieving the data from the island script
-df_1 <- read_tsv("C:/Users/aidan/Desktop/HRP/CoRC-Distributed-Island-Genetic-algorithm/KinMMFit-10.tsv")
-
-iter <- df_1%>%
-  select(iteration)%>%
-  summarise(max = max(iteration))
-iter <- as.double(iter)
 
 #separating the objective values of the two islands across ten trials to recreate the COPASI plot
 isle_1<- df_1%>%filter(island==1)%>%select(evals,fitness)
@@ -49,7 +75,7 @@ isle_2<- df_1 %>%filter(island==2)%>% select(evals,fitness)
 
 
 
-#initialize a data frame for the number of iterations + the function evaluations + stdev + mean
+#initialize a data frame for comparison of trials
 island_1_avg <- data.frame(matrix(ncol = iter,nrow = (dim(isle_1)[1]/iter)))
 fitness_1 <- df_1%>%
   filter(island == 1)%>%
@@ -68,10 +94,14 @@ for(i in 1:dim(fitness_1)[1]){
     row_count <- row_count + 1}
 }
 
+#Add the column for the mean
 island_1_avg <-island_1_avg%>%
   mutate(avg = rowMeans(island_1_avg))
 
-
+#Add the column for the st dev and CV
+island_1_avg <- island_1_avg%>%
+  mutate(StDev = rowSds(as.matrix(select(island_1_avg,-avg))),
+         cv = StDev / avg)
 
 #Repeat for Island 2
 island_2_avg <- data.frame(matrix(ncol = iter,nrow = (dim(isle_2)[1]/iter)))
@@ -92,6 +122,10 @@ for(i in 1:dim(fitness_2)[1]){
 
 island_2_avg <-island_2_avg%>%
   mutate(avg = rowMeans(island_2_avg))
+
+island_2_avg <- island_2_avg%>%
+  mutate(StDev = rowSds(as.matrix(select(island_2_avg,-avg))),
+         cv = StDev / avg)
 
 #create an x axis vector
 axis <- isle_1 %>%
