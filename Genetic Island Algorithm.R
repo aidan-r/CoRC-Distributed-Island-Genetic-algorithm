@@ -199,7 +199,7 @@ col <- 5 + dim(initial_pop_one)[2]
 method_one$optimise_finish();
 # repeats is the number of times we want to repeat the whole process
 # later, this could be read from the command line instead of being hard-coded
-repeats <- 1
+repeats <- 100
 
 #need a column for the iteration, island, gen number, the objective value, and each parameter that was estimated
 #start off with 0 rows and successively add at each step
@@ -290,5 +290,6 @@ for(r in 1:repeats){
 } # end of the outer loop
 
 # now we need to save the entire data frame!
-outfilename <- sprintf("%s-%d.tsv",basename,repeats)
+version <-1
+outfilename <- sprintf("%s-%d-%d.tsv",basename,repeats,version)
 write_tsv(x = output, path = outfilename, col_names = TRUE)
